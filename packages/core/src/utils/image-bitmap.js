@@ -1,6 +1,5 @@
 import FileType from "file-type";
 
-import EXIFParser from "exif-parser";
 import { throwError } from "@jimp/utils";
 
 import * as constants from "../constants";
@@ -22,75 +21,6 @@ async function getMIMEFromBuffer(buffer, path) {
   }
 
   return null;
-}
-
-/*
- * Obtains image orientation from EXIF metadata.
- *
- * @param img {Jimp} a Jimp image object
- * @returns {number} a number 1-8 representing EXIF orientation,
- *          in particular 1 if orientation tag is missing
- */
-function getExifOrientation(img) {
-  return (img._exif && img._exif.tags && img._exif.tags.Orientation) || 1;
-}
-
-/**
- * Returns a function which translates EXIF-rotated coordinates into
- * non-rotated ones.
- *
- * Transformation reference: http://sylvana.net/jpegcrop/exif_orientation.html.
- *
- * @param img {Jimp} a Jimp image object
- * @returns {function} transformation function for transformBitmap().
- */
-function getExifOrientationTransformation(img) {
-  const w = img.getWidth();
-  const h = img.getHeight();
-
-  switch (getExifOrientation(img)) {
-    case 1: // Horizontal (normal)
-      // does not need to be supported here
-      return null;
-
-    case 2: // Mirror horizontal
-      return function (x, y) {
-        return [w - x - 1, y];
-      };
-
-    case 3: // Rotate 180
-      return function (x, y) {
-        return [w - x - 1, h - y - 1];
-      };
-
-    case 4: // Mirror vertical
-      return function (x, y) {
-        return [x, h - y - 1];
-      };
-
-    case 5: // Mirror horizontal and rotate 270 CW
-      return function (x, y) {
-        return [y, x];
-      };
-
-    case 6: // Rotate 90 CW
-      return function (x, y) {
-        return [y, h - x - 1];
-      };
-
-    case 7: // Mirror horizontal and rotate 90 CW
-      return function (x, y) {
-        return [w - y - 1, h - x - 1];
-      };
-
-    case 8: // Rotate 270 CW
-      return function (x, y) {
-        return [w - y - 1, x];
-      };
-
-    default:
-      return null;
-  }
 }
 
 /*
@@ -132,22 +62,6 @@ function transformBitmap(img, width, height, transformation) {
   img.bitmap.height = height;
 }
 
-/*
- * Automagically rotates an image based on its EXIF data (if present).
- * @param img {Jimp} a Jimp image object
- */
-function exifRotate(img) {
-  if (getExifOrientation(img) < 2) return;
-
-  const transformation = getExifOrientationTransformation(img);
-  const swapDimensions = getExifOrientation(img) > 4;
-
-  const newWidth = swapDimensions ? img.bitmap.height : img.bitmap.width;
-  const newHeight = swapDimensions ? img.bitmap.width : img.bitmap.height;
-
-  transformBitmap(img, newWidth, newHeight, transformation);
-}
-
 // parses a bitmap from the constructor to the JIMP bitmap property
 export async function parseBitmap(data, path, cb) {
   const mime = await getMIMEFromBuffer(data, path);
@@ -168,13 +82,6 @@ export async function parseBitmap(data, path, cb) {
     }
   } catch (error) {
     return cb.call(this, error, this);
-  }
-
-  try {
-    this._exif = EXIFParser.create(data).parse();
-    exifRotate(this); // EXIF data
-  } catch (error) {
-    /* meh */
   }
 
   cb.call(this, null, this);
