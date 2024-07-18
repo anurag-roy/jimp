@@ -45,13 +45,13 @@
   "author": "Oliver Moran <oliver.moran@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "@jimp/custom": "link:../custom",
-    "@jimp/plugins": "link:../plugins",
-    "@jimp/types": "link:../types",
+    "@jimp/custom": "^0.22.12",
+    "@jimp/plugins": "^0.22.12",
+    "@jimp/types": "^0.22.12",
     "regenerator-runtime": "^0.13.3"
   },
   "devDependencies": {
-    "@jimp/test-utils": "link:../test-utils",
+    "@jimp/test-utils": "^0.22.12",
     "empty-module": "^0.0.2",
     "express": "^4.17.1",
     "path-browserify": "^1.0.1",
@@ -71,5 +71,6 @@
       "src/modules/*.js",
       "test/*.js"
     ]
-  }
+  },
+  "gitHead": "a4a8d6364bbf97629749e196f3b0a4c94c9a7abc"
 }
